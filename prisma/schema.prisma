@@ -1,0 +1,48 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Room {
+  id           Int           @id @default(autoincrement())
+  code         String        @unique
+  createdAt    DateTime      @default(now())
+  meals        Meal[]
+  participants Participant[]
+  votes        Vote[]
+}
+
+model Meal {
+  id        Int      @id @default(autoincrement())
+  roomId    Int
+  nameVi    String
+  nameEn    String
+  createdAt DateTime @default(now())
+  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  votes     Vote[]
+}
+
+model Participant {
+  id       Int      @id @default(autoincrement())
+  roomId   Int
+  nickname String
+  joinedAt DateTime @default(now())
+  room     Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  votes    Vote[]
+}
+
+model Vote {
+  id            Int         @id @default(autoincrement())
+  roomId        Int
+  participantId Int
+  mealId        Int
+  room          Room        @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  participant   Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  meal          Meal        @relation(fields: [mealId], references: [id], onDelete: Cascade)
+
+  @@unique([roomId, participantId])
+}
