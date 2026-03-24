@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { MealList } from "@/components/meal-list";
 import { VotingSection } from "@/components/voting-section";
 import { ResultsChart } from "@/components/results-chart";
+import { NicknameModal } from "@/components/nickname-modal";
 
 type Room = {
   id: number;
@@ -17,6 +18,7 @@ type Meal = {
   id: number;
   nameVi: string;
   nameEn: string;
+  image: string | null;
 };
 
 type Participant = {
@@ -33,10 +35,18 @@ type Vote = {
 export function RoomClient({ initialRoom }: { initialRoom: Room }) {
   const [room, setRoom] = useState(initialRoom);
   const [participantId, setParticipantId] = useState<number | null>(null);
+  const [needsNickname, setNeedsNickname] = useState(false);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem(`participant-${room.code}`);
-    if (stored) setParticipantId(Number(stored));
+    if (stored) {
+      setParticipantId(Number(stored));
+      setNeedsNickname(false);
+    } else {
+      setNeedsNickname(true);
+    }
+    setLoaded(true);
   }, [room.code]);
 
   useEffect(() => {
@@ -85,39 +95,62 @@ export function RoomClient({ initialRoom }: { initialRoom: Room }) {
 
   const myVote = room.votes.find((v) => v.participantId === participantId);
 
+  if (!loaded) return null;
+
   return (
-    <main className="max-w-2xl mx-auto px-4 py-8">
-      <div className="text-center mb-8">
-        <h1 className="text-2xl font-bold text-orange-600">
-          The Flavor Finders
-        </h1>
-        <p className="text-gray-500 mt-1">
-          Room Code:{" "}
-          <span className="font-mono font-bold tracking-widest text-gray-700">
-            {room.code}
-          </span>
-        </p>
-        <p className="text-sm text-gray-400 mt-1">
-          {room.participants.length} participant(s)
-        </p>
-      </div>
-
-      <div className="space-y-6">
-        <MealList meals={room.meals} roomCode={room.code} />
-
-        <VotingSection
-          meals={room.meals}
+    <>
+      {needsNickname && (
+        <NicknameModal
           roomCode={room.code}
-          participantId={participantId}
-          currentVoteMealId={myVote?.mealId ?? null}
+          onJoined={(id) => {
+            setParticipantId(id);
+            setNeedsNickname(false);
+          }}
         />
+      )}
 
-        <ResultsChart
-          meals={room.meals}
-          votes={room.votes}
-          participants={room.participants}
-        />
+      <div className="h-screen flex flex-col overflow-hidden">
+        <header className="flex items-center justify-between px-4 md:px-6 py-3 border-b border-orange-100 bg-white shrink-0">
+          <h1 className="text-lg md:text-xl font-bold text-orange-600">
+            The Flavor Finders
+          </h1>
+          <div className="flex items-center gap-2 md:gap-4 text-xs md:text-sm">
+            <span className="text-gray-500">
+              Room:{" "}
+              <span className="font-mono font-bold tracking-widest text-gray-700">
+                {room.code}
+              </span>
+            </span>
+            <span className="text-gray-400">
+              {room.participants.length} joined
+            </span>
+          </div>
+        </header>
+
+        {/* Desktop: 3 columns | Mobile: vertical scroll */}
+        <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 p-3 md:p-4 min-h-0 overflow-y-auto md:overflow-hidden">
+          <div className="md:overflow-y-auto">
+            <MealList meals={room.meals} roomCode={room.code} />
+          </div>
+
+          <div className="md:overflow-y-auto">
+            <VotingSection
+              meals={room.meals}
+              roomCode={room.code}
+              participantId={participantId}
+              currentVoteMealId={myVote?.mealId ?? null}
+            />
+          </div>
+
+          <div className="md:overflow-y-auto">
+            <ResultsChart
+              meals={room.meals}
+              votes={room.votes}
+              participants={room.participants}
+            />
+          </div>
+        </div>
       </div>
-    </main>
+    </>
   );
 }

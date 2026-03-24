@@ -1,6 +1,8 @@
 "use client";
 
-type Meal = { id: number; nameVi: string; nameEn: string };
+import Image from "next/image";
+
+type Meal = { id: number; nameVi: string; nameEn: string; image: string | null };
 type Vote = { participantId: number; mealId: number };
 type Participant = { id: number; nickname: string };
 
@@ -28,7 +30,7 @@ export function ResultsChart({
   const maxCount = sorted[0]?.count || 0;
 
   return (
-    <div className="bg-white rounded-xl p-6 shadow-sm">
+    <div className="bg-white rounded-xl p-6 shadow-sm h-full flex flex-col">
       <h2 className="text-lg font-semibold text-gray-700 mb-4">
         Results
         {totalVotes > 0 && (
@@ -48,9 +50,12 @@ export function ResultsChart({
 
             return (
               <div key={meal.id}>
-                <div className="flex justify-between items-baseline mb-1">
+                <div className="flex items-center gap-2 mb-1">
+                  {meal.image && (
+                    <Image src={meal.image} alt={meal.nameVi} width={24} height={24} className="w-6 h-6 object-cover rounded" />
+                  )}
                   <span
-                    className={`text-sm font-medium ${
+                    className={`text-sm font-medium flex-1 ${
                       isWinner ? "text-orange-600" : "text-gray-700"
                     }`}
                   >

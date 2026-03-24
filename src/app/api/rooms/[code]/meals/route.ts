@@ -7,7 +7,7 @@ export async function POST(
   { params }: { params: Promise<{ code: string }> }
 ) {
   const { code } = await params;
-  const { nameVi, nameEn } = await request.json();
+  const { nameVi, nameEn, image } = await request.json();
 
   if (!nameVi?.trim() || !nameEn?.trim()) {
     return NextResponse.json(
@@ -22,7 +22,7 @@ export async function POST(
   }
 
   const meal = await prisma.meal.create({
-    data: { roomId: room.id, nameVi: nameVi.trim(), nameEn: nameEn.trim() },
+    data: { roomId: room.id, nameVi: nameVi.trim(), nameEn: nameEn.trim(), image: image || null },
   });
 
   broadcast(code, "meal-added", meal);

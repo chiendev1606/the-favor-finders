@@ -7,7 +7,7 @@ export async function PUT(
   { params }: { params: Promise<{ code: string; id: string }> }
 ) {
   const { code, id } = await params;
-  const { nameVi, nameEn } = await request.json();
+  const { nameVi, nameEn, image } = await request.json();
 
   if (!nameVi?.trim() || !nameEn?.trim()) {
     return NextResponse.json(
@@ -26,7 +26,7 @@ export async function PUT(
 
   const updated = await prisma.meal.update({
     where: { id: Number(id) },
-    data: { nameVi: nameVi.trim(), nameEn: nameEn.trim() },
+    data: { nameVi: nameVi.trim(), nameEn: nameEn.trim(), image: image !== undefined ? (image || null) : undefined },
   });
 
   broadcast(code, "meal-updated", updated);
