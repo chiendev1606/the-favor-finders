@@ -59,6 +59,12 @@ type Vote = { id: number; participantId: number; mealId: number };
 type ChatMsg = { id: number; text: string; participantId: number; participant: { nickname: string }; createdAt: string };
 type VetoData = { participantId: number; mealId: number; participant: { nickname: string }; reason?: string };
 type PhotoData = { id: number; url: string; participantId: number; participant: { nickname: string }; createdAt: string };
+type VoteSummaryItem = {
+  meal: { id: number; nameVi: string; nameEn: string; image: string | null };
+  count: number;
+  percentage: number;
+  voters: string[];
+};
 
 export function RoomClient({ initialRoom }: { initialRoom: Room }) {
   const [room, setRoom] = useState(initialRoom);
@@ -87,6 +93,8 @@ export function RoomClient({ initialRoom }: { initialRoom: Room }) {
   const [photos, setPhotos] = useState<PhotoData[]>([]);
   const [showPhotos, setShowPhotos] = useState(false);
   const [surpriseMode, setSurpriseMode] = useState(false);
+  const [voteSummary, setVoteSummary] = useState<VoteSummaryItem[]>([]);
+  const [showSummary, setShowSummary] = useState(false);
   const { play: playSound, enabled: soundEnabled, toggle: toggleSound } = useSoundEffects();
 
   useEffect(() => {
@@ -172,8 +180,13 @@ export function RoomClient({ initialRoom }: { initialRoom: Room }) {
 
     eventSource.addEventListener("room-finished", (e) => {
       const data = JSON.parse(e.data);
-      setRoom((prev) => ({ ...prev, status: "finished", winnerId: data.winnerId }));
+      setRoom((prev) => ({ ...prev, status: "finished", winnerId: data.winnerId, deadline: null }));
       playSound("applause");
+
+      // Store vote summary
+      if (data.summary) {
+        setVoteSummary(data.summary);
+      }
 
       if (data.isTie && data.tiedMeals) {
         setTiedMeals(data.tiedMeals);
@@ -182,6 +195,9 @@ export function RoomClient({ initialRoom }: { initialRoom: Room }) {
         setWinnerData({ meal: data.winnerMeal, votes: data.winnerVotes, total: data.totalVotes });
         setShowWinner(true);
       }
+
+      // Show summary after a brief delay to let celebration play
+      setTimeout(() => setShowSummary(true), 500);
     });
 
     eventSource.addEventListener("veto", (e) => {
@@ -353,6 +369,28 @@ export function RoomClient({ initialRoom }: { initialRoom: Room }) {
 
         {/* Vote nudge */}
         <VoteNudge participants={room.participants} votes={room.votes} />
+
+        {/* Vote Summary Banner */}
+        {showSummary && voteSummary.length > 0 && room.status === "finished" && (
+          <div className="px-2 sm:px-3 md:px-4 py-2 bg-orange-50 border-b shrink-0">
+            <div className="flex items-center justify-between mb-1.5">
+              <p className="text-sm font-semibold text-orange-700">Voting Results</p>
+              <Button size="sm" variant="ghost" className="h-5 px-1.5 text-xs text-muted-foreground" onClick={() => setShowSummary(false)}>✕</Button>
+            </div>
+            <div className="space-y-1">
+              {voteSummary.slice(0, 3).map((item, i) => (
+                <div key={item.meal.id} className="flex items-center gap-2 text-xs">
+                  <span className="font-medium w-4">{i === 0 ? "🥇" : i === 1 ? "🥈" : "🥉"}</span>
+                  <span className="font-medium truncate flex-1">{item.meal.nameVi}</span>
+                  <span className="text-muted-foreground">{item.count} vote{item.count !== 1 ? "s" : ""} ({item.percentage}%)</span>
+                  {item.voters.length > 0 && (
+                    <span className="text-muted-foreground hidden sm:inline">— {item.voters.join(", ")}</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Main content */}
         <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3 md:gap-4 p-2 sm:p-3 md:p-4 min-h-0 overflow-y-auto md:overflow-hidden">

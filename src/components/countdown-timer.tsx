@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -17,43 +17,33 @@ export function CountdownTimer({
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
   const [totalTime, setTotalTime] = useState<number>(0);
   const [setting, setSetting] = useState(false);
-  const firedRef = useRef(false);
-  const onTimeUpRef = useRef(onTimeUp);
-  onTimeUpRef.current = onTimeUp;
 
   useEffect(() => {
     if (!deadline) {
       setTimeLeft(null);
-      firedRef.current = false;
       return;
     }
 
+    // deadline is an ISO string (UTC) — new Date() parses it correctly
     const deadlineMs = new Date(deadline).getTime();
-    const now = Date.now();
+    const now = Date.now(); // also UTC
     const total = deadlineMs - now;
 
     if (total <= 0) {
       setTimeLeft(0);
-      if (!firedRef.current) {
-        firedRef.current = true;
-        onTimeUpRef.current();
-      }
       return;
     }
 
     setTotalTime(total);
     setTimeLeft(total);
-    firedRef.current = false;
 
     const interval = setInterval(() => {
       const remaining = deadlineMs - Date.now();
       if (remaining <= 0) {
         setTimeLeft(0);
         clearInterval(interval);
-        if (!firedRef.current) {
-          firedRef.current = true;
-          onTimeUpRef.current();
-        }
+        // Server will auto-finish and broadcast room-finished via SSE
+        // No need for client to call finish API
       } else {
         setTimeLeft(remaining);
       }
@@ -72,7 +62,7 @@ export function CountdownTimer({
     setSetting(false);
   }, [roomCode]);
 
-  // No deadline set and no timer — show set buttons
+  // No deadline set — show set buttons
   if (!deadline) {
     return (
       <div className="flex items-center gap-1">

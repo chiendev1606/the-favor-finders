@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { broadcast } from "@/lib/sse";
+import { broadcast, scheduleRoomFinish } from "@/lib/sse";
+import { finishRoom } from "@/lib/finish-room";
 
 export async function POST(
   request: Request,
@@ -12,6 +13,7 @@ export async function POST(
   const room = await prisma.room.findUnique({ where: { code } });
   if (!room) return NextResponse.json({ error: "Room not found" }, { status: 404 });
 
+  // Server uses UTC — Date.now() is always UTC milliseconds
   const deadline = new Date(Date.now() + minutes * 60 * 1000);
 
   await prisma.room.update({
@@ -19,7 +21,13 @@ export async function POST(
     data: { deadline, status: "voting" },
   });
 
-  broadcast(code, "deadline-set", { deadline: deadline.toISOString(), minutes });
+  // Schedule server-side auto-finish when deadline arrives
+  scheduleRoomFinish(code, deadline, () => finishRoom(code));
 
-  return NextResponse.json({ deadline });
+  broadcast(code, "deadline-set", {
+    deadline: deadline.toISOString(),
+    minutes,
+  });
+
+  return NextResponse.json({ deadline: deadline.toISOString() });
 }
