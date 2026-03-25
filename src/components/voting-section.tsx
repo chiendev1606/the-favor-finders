@@ -1,8 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Tooltip,
   TooltipContent,
@@ -11,6 +13,17 @@ import {
 } from "@/components/ui/tooltip";
 
 type Meal = { id: number; nameVi: string; nameEn: string; image: string | null; description: string | null; tags: string | null; lat: number | null; lng: number | null };
+
+const LOADING_MESSAGES = [
+  { emoji: "🍜", text: "Warming up the broth..." },
+  { emoji: "🥢", text: "Sharpening the chopsticks..." },
+  { emoji: "👨‍🍳", text: "Consulting the chef..." },
+  { emoji: "🔥", text: "Firing up the wok..." },
+  { emoji: "🌶️", text: "Adding a pinch of spice..." },
+  { emoji: "🥡", text: "Packing your order..." },
+  { emoji: "✨", text: "Sprinkling some magic..." },
+  { emoji: "🍳", text: "Cracking the eggs..." },
+];
 
 export function VotingSection({
   meals,
@@ -23,14 +36,30 @@ export function VotingSection({
   participantId: number | null;
   currentVoteMealId: number | null;
 }) {
-  async function handleVote(mealId: number) {
-    if (!participantId) return;
+  const [votingMealId, setVotingMealId] = useState<number | null>(null);
+  const [loadingMsg, setLoadingMsg] = useState(LOADING_MESSAGES[0]);
 
-    await fetch(`/api/rooms/${roomCode}/vote`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ participantId, mealId }),
-    });
+  async function handleVote(mealId: number) {
+    if (!participantId || votingMealId !== null) return;
+
+    setVotingMealId(mealId);
+    setLoadingMsg(LOADING_MESSAGES[Math.floor(Math.random() * LOADING_MESSAGES.length)]);
+
+    // Cycle through fun messages while waiting
+    const msgInterval = setInterval(() => {
+      setLoadingMsg(LOADING_MESSAGES[Math.floor(Math.random() * LOADING_MESSAGES.length)]);
+    }, 800);
+
+    try {
+      await fetch(`/api/rooms/${roomCode}/vote`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ participantId, mealId }),
+      });
+    } finally {
+      clearInterval(msgInterval);
+      setVotingMealId(null);
+    }
   }
 
   return (
@@ -38,20 +67,65 @@ export function VotingSection({
       <CardHeader className="pb-3">
         <CardTitle className="text-base">Pick Your Meal</CardTitle>
       </CardHeader>
-      <CardContent className="flex-1 overflow-y-auto pt-0">
+      <CardContent className="flex-1 overflow-y-auto pt-0 relative">
+        {/* Loading overlay */}
+        <AnimatePresence>
+          {votingMealId !== null && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-card/80 backdrop-blur-sm rounded-lg"
+            >
+              <motion.div
+                animate={{ rotate: [0, -10, 10, -10, 0], scale: [1, 1.2, 1] }}
+                transition={{ duration: 0.6, repeat: Infinity }}
+                className="text-5xl mb-3"
+              >
+                {loadingMsg.emoji}
+              </motion.div>
+              <motion.p
+                key={loadingMsg.text}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-sm font-medium text-orange-600"
+              >
+                {loadingMsg.text}
+              </motion.p>
+              <div className="flex gap-1 mt-3">
+                {[0, 1, 2].map((i) => (
+                  <motion.div
+                    key={i}
+                    className="w-2 h-2 rounded-full bg-orange-400"
+                    animate={{ scale: [1, 1.5, 1], opacity: [0.4, 1, 0.4] }}
+                    transition={{ repeat: Infinity, duration: 0.6, delay: i * 0.15 }}
+                  />
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <TooltipProvider>
           <div className="grid gap-2 content-start">
             {meals.map((meal) => {
               const isSelected = currentVoteMealId === meal.id;
+              const isVoting = votingMealId === meal.id;
               return (
                 <Tooltip key={meal.id}>
                   <TooltipTrigger className="w-full">
-                    <button
+                    <motion.button
                       onClick={() => handleVote(meal.id)}
+                      disabled={votingMealId !== null}
+                      whileTap={votingMealId === null ? { scale: 0.97 } : undefined}
                       className={`w-full flex items-center gap-2 md:gap-3 text-left px-3 py-2.5 rounded-lg border transition-all cursor-pointer ${
-                        isSelected
-                          ? "border-orange-500 bg-orange-50 ring-2 ring-orange-200"
-                          : "border-border hover:border-orange-200 hover:bg-accent"
+                        isVoting
+                          ? "border-orange-500 bg-orange-50 ring-2 ring-orange-300 animate-pulse"
+                          : isSelected
+                            ? "border-orange-500 bg-orange-50 ring-2 ring-orange-200"
+                            : votingMealId !== null
+                              ? "border-border opacity-50"
+                              : "border-border hover:border-orange-200 hover:bg-accent"
                       }`}
                     >
                       {meal.image && (
@@ -61,10 +135,18 @@ export function VotingSection({
                         <span className="font-medium text-sm">{meal.nameVi}</span>
                         <span className="text-muted-foreground ml-1 text-xs">({meal.nameEn})</span>
                       </div>
-                      {isSelected && (
+                      {isVoting ? (
+                        <motion.span
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
+                          className="text-lg shrink-0"
+                        >
+                          🍜
+                        </motion.span>
+                      ) : isSelected ? (
                         <Badge className="bg-orange-500 hover:bg-orange-500 shrink-0">Voted</Badge>
-                      )}
-                    </button>
+                      ) : null}
+                    </motion.button>
                   </TooltipTrigger>
                   {meal.description && (
                     <TooltipContent side="top" className="max-w-[280px] sm:max-w-xs">
