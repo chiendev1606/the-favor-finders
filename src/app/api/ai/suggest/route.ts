@@ -40,7 +40,8 @@ Reply in this exact JSON format (no markdown, no code blocks):
     const suggestions = JSON.parse(jsonMatch[0]);
     return NextResponse.json({ suggestions });
   } catch (error) {
-    console.error("Gemini suggest error:", error);
-    return NextResponse.json({ error: "AI suggestion failed" }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Unknown error";
+    console.error("Gemini suggest error:", message);
+    return NextResponse.json({ error: `AI suggestion failed: ${message}` }, { status: 500 });
   }
 }
