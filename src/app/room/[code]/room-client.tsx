@@ -30,6 +30,8 @@ import { AmbientMusic } from "@/components/ambient-music";
 import { TimesUpAnimation } from "@/components/times-up-animation";
 import { ResultBoard } from "@/components/result-board";
 import { RoomEndedNotice } from "@/components/room-ended-notice";
+import { AiSuggest } from "@/components/ai-suggest";
+import { AiRestaurants } from "@/components/ai-restaurants";
 import { AVAILABLE_TAGS } from "@/lib/default-meals";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -100,6 +102,8 @@ export function RoomClient({ initialRoom }: { initialRoom: Room }) {
   const [showSummary, setShowSummary] = useState(false);
   const [showTimesUp, setShowTimesUp] = useState(false);
   const [showResultBoard, setShowResultBoard] = useState(false);
+  const [showAiRestaurants, setShowAiRestaurants] = useState(false);
+  const [aiRestaurantMeal, setAiRestaurantMeal] = useState("");
   const { play: playSound, enabled: soundEnabled, toggle: toggleSound } = useSoundEffects();
 
   useEffect(() => {
@@ -329,10 +333,15 @@ export function RoomClient({ initialRoom }: { initialRoom: Room }) {
         onClose={() => {
           setShowWinner(false);
           if (winnerData.meal) {
-            setMapMealName(winnerData.meal.nameEn);
-            setShowMap(true);
+            setAiRestaurantMeal(`${winnerData.meal.nameVi} (${winnerData.meal.nameEn})`);
+            setShowAiRestaurants(true);
           }
         }}
+      />
+      <AiRestaurants
+        mealName={aiRestaurantMeal}
+        show={showAiRestaurants}
+        onClose={() => setShowAiRestaurants(false)}
       />
       <SpinWheel
         meals={tiedMeals}
@@ -442,8 +451,22 @@ export function RoomClient({ initialRoom }: { initialRoom: Room }) {
 
         {/* Main content */}
         <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3 md:gap-4 p-2 sm:p-3 md:p-4 min-h-0 overflow-y-auto md:overflow-hidden">
-          <div className="md:overflow-y-auto">
+          <div className="md:overflow-y-auto space-y-2">
             <MealList meals={filteredMeals} roomCode={room.code} onPreview={setPreviewMeal} />
+            {room.status === "voting" && (
+              <AiSuggest
+                roomCode={room.code}
+                mood={mood}
+                currentMeals={room.meals.map((m) => m.nameVi)}
+                onAddMeal={async (meal) => {
+                  await fetch(`/api/rooms/${room.code}/meals`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(meal),
+                  });
+                }}
+              />
+            )}
             {/* Vetoed meals */}
             {vetoes.length > 0 && (
               <div className="mt-2 p-2 bg-red-50 dark:bg-red-950/30 rounded-lg">
