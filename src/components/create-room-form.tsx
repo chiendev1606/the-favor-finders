@@ -7,19 +7,20 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 
-const TIMER_OPTIONS = [
+const QUICK_OPTIONS = [
   { label: "No limit", value: 0 },
   { label: "1 min", value: 1 },
   { label: "3 min", value: 3 },
   { label: "5 min", value: 5 },
   { label: "10 min", value: 10 },
-  { label: "15 min", value: 15 },
   { label: "30 min", value: 30 },
 ];
 
 export function CreateRoomForm() {
   const [nickname, setNickname] = useState("");
-  const [expiresInMinutes, setExpiresInMinutes] = useState(0);
+  const [timerMode, setTimerMode] = useState<"quick" | "exact">("quick");
+  const [quickMinutes, setQuickMinutes] = useState(0);
+  const [exactTime, setExactTime] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -27,13 +28,26 @@ export function CreateRoomForm() {
     e.preventDefault();
     if (!nickname.trim()) return;
 
+    let deadlineUtc: string | undefined;
+
+    if (timerMode === "quick" && quickMinutes > 0) {
+      // Convert minutes to UTC deadline
+      deadlineUtc = new Date(Date.now() + quickMinutes * 60 * 1000).toISOString();
+    } else if (timerMode === "exact" && exactTime) {
+      // exactTime is in local time from datetime-local input — convert to UTC
+      const localDate = new Date(exactTime);
+      if (localDate.getTime() > Date.now()) {
+        deadlineUtc = localDate.toISOString();
+      }
+    }
+
     setLoading(true);
     const res = await fetch("/api/rooms", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         nickname: nickname.trim(),
-        expiresInMinutes: expiresInMinutes || undefined,
+        deadlineUtc,
       }),
     });
     const data = await res.json();
@@ -41,6 +55,9 @@ export function CreateRoomForm() {
     localStorage.setItem(`participant-${data.code}`, String(data.participantId));
     router.push(`/room/${data.code}`);
   }
+
+  // Get minimum datetime for the picker (now + 1 minute)
+  const minDatetime = new Date(Date.now() + 60000).toISOString().slice(0, 16);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -56,22 +73,56 @@ export function CreateRoomForm() {
 
       <div className="space-y-2">
         <Label className="text-sm text-muted-foreground">Session timer</Label>
-        <div className="flex flex-wrap gap-1.5">
-          {TIMER_OPTIONS.map((opt) => (
-            <Badge
-              key={opt.value}
-              variant={expiresInMinutes === opt.value ? "default" : "outline"}
-              className={`cursor-pointer text-xs ${
-                expiresInMinutes === opt.value
-                  ? "bg-orange-500 hover:bg-orange-600"
-                  : "hover:bg-accent"
-              }`}
-              onClick={() => setExpiresInMinutes(opt.value)}
-            >
-              {opt.label}
-            </Badge>
-          ))}
+
+        {/* Mode toggle */}
+        <div className="flex gap-1.5 mb-2">
+          <Badge
+            variant={timerMode === "quick" ? "default" : "outline"}
+            className={`cursor-pointer text-xs ${timerMode === "quick" ? "bg-orange-500 hover:bg-orange-600" : "hover:bg-accent"}`}
+            onClick={() => setTimerMode("quick")}
+          >
+            Quick
+          </Badge>
+          <Badge
+            variant={timerMode === "exact" ? "default" : "outline"}
+            className={`cursor-pointer text-xs ${timerMode === "exact" ? "bg-orange-500 hover:bg-orange-600" : "hover:bg-accent"}`}
+            onClick={() => { setTimerMode("exact"); setQuickMinutes(0); }}
+          >
+            Exact time
+          </Badge>
         </div>
+
+        {timerMode === "quick" ? (
+          <div className="flex flex-wrap gap-1.5">
+            {QUICK_OPTIONS.map((opt) => (
+              <Badge
+                key={opt.value}
+                variant={quickMinutes === opt.value ? "default" : "outline"}
+                className={`cursor-pointer text-xs ${
+                  quickMinutes === opt.value
+                    ? "bg-orange-500 hover:bg-orange-600"
+                    : "hover:bg-accent"
+                }`}
+                onClick={() => setQuickMinutes(opt.value)}
+              >
+                {opt.label}
+              </Badge>
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-1.5">
+            <Input
+              type="datetime-local"
+              value={exactTime}
+              min={minDatetime}
+              onChange={(e) => setExactTime(e.target.value)}
+              className="text-sm"
+            />
+            <p className="text-[11px] text-muted-foreground">
+              Room will auto-close at this time
+            </p>
+          </div>
+        )}
       </div>
 
       <Button type="submit" disabled={loading} className="w-full bg-orange-500 hover:bg-orange-600">

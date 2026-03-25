@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { DEFAULT_MEALS } from "@/lib/default-meals";
+import { scheduleRoomFinish } from "@/lib/sse";
+import { finishRoom } from "@/lib/finish-room";
 import crypto from "crypto";
 
 function generateCode(): string {
@@ -8,7 +10,7 @@ function generateCode(): string {
 }
 
 export async function POST(request: Request) {
-  const { nickname, expiresInMinutes } = await request.json();
+  const { nickname, deadlineUtc } = await request.json();
 
   if (!nickname || typeof nickname !== "string" || !nickname.trim()) {
     return NextResponse.json({ error: "Nickname is required" }, { status: 400 });
@@ -19,9 +21,7 @@ export async function POST(request: Request) {
     code = generateCode();
   }
 
-  const deadline = expiresInMinutes
-    ? new Date(Date.now() + expiresInMinutes * 60 * 1000)
-    : null;
+  const deadline = deadlineUtc ? new Date(deadlineUtc) : null;
 
   const room = await prisma.room.create({
     data: {
@@ -32,6 +32,11 @@ export async function POST(request: Request) {
     },
     include: { participants: true },
   });
+
+  // Schedule server-side auto-finish if deadline is set
+  if (deadline) {
+    scheduleRoomFinish(code, deadline, async () => { await finishRoom(code); });
+  }
 
   return NextResponse.json({
     code: room.code,
