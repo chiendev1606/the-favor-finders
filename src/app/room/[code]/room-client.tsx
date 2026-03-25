@@ -440,7 +440,7 @@ export function RoomClient({ initialRoom }: { initialRoom: Room }) {
 
           <div className="md:overflow-y-auto space-y-3">
             <div className="sticky top-0 z-10">
-              <RandomPicker roomCode={room.code} meals={filteredMeals} participantId={participantId} />
+              <RandomPicker roomCode={room.code} meals={filteredMeals} participantId={participantId} isFinished={room.status === "finished"} />
             </div>
             {surpriseMode ? (
               <SurpriseMode
@@ -449,6 +449,7 @@ export function RoomClient({ initialRoom }: { initialRoom: Room }) {
                 participantId={participantId}
                 currentVoteMealId={myVote?.mealId ?? null}
                 onVote={() => {}}
+                isFinished={room.status === "finished"}
               />
             ) : (
               <VotingSection

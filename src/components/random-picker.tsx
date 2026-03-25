@@ -12,10 +12,12 @@ export function RandomPicker({
   roomCode,
   meals,
   participantId,
+  isFinished,
 }: {
   roomCode: string;
   meals: Meal[];
   participantId: number | null;
+  isFinished?: boolean;
 }) {
   const [active, setActive] = useState(false);
   const [phase, setPhase] = useState<"rolling" | "reveal" | null>(null);
@@ -84,7 +86,7 @@ export function RandomPicker({
     <>
       <Button
         onClick={handlePick}
-        disabled={active || meals.length === 0}
+        disabled={active || meals.length === 0 || isFinished}
         className="w-full bg-gradient-to-r from-purple-500 to-orange-500 hover:from-purple-600 hover:to-orange-600 text-white font-semibold py-3 text-base"
       >
         🎲 Can&apos;t decide? Let fate choose!

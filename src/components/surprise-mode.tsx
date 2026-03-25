@@ -15,17 +15,19 @@ export function SurpriseMode({
   participantId,
   currentVoteMealId,
   onVote,
+  isFinished,
 }: {
   meals: Meal[];
   roomCode: string;
   participantId: number | null;
   currentVoteMealId: number | null;
   onVote: (mealId: number) => void;
+  isFinished?: boolean;
 }) {
   const [revealed, setRevealed] = useState(false);
 
   async function handleVote(mealId: number) {
-    if (!participantId) return;
+    if (!participantId || isFinished) return;
     onVote(mealId);
     await fetch(`/api/rooms/${roomCode}/vote`, {
       method: "POST",
@@ -53,7 +55,9 @@ export function SurpriseMode({
             <motion.button
               key={meal.id}
               onClick={() => handleVote(meal.id)}
-              className={`relative aspect-square rounded-lg overflow-hidden border-2 cursor-pointer transition-all ${
+              disabled={isFinished}
+              className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${
+                isFinished ? "opacity-60 cursor-default" :
                 currentVoteMealId === meal.id
                   ? "border-orange-500 ring-2 ring-orange-200"
                   : "border-transparent hover:border-orange-200"
