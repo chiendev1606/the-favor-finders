@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
+import { finishRoom } from "@/lib/finish-room";
 import { RoomClient } from "./room-client";
 
 export async function generateMetadata({
@@ -46,6 +47,19 @@ export default async function RoomPage({
 }) {
   const { code } = await params;
 
+  // Check if room has an expired deadline — finish it on page load
+  const roomCheck = await prisma.room.findUnique({ where: { code } });
+  if (!roomCheck) notFound();
+
+  if (
+    roomCheck.status === "voting" &&
+    roomCheck.deadline &&
+    new Date(roomCheck.deadline).getTime() <= Date.now()
+  ) {
+    await finishRoom(code);
+  }
+
+  // Re-fetch with full includes after potential finish
   const room = await prisma.room.findUnique({
     where: { code },
     include: {
