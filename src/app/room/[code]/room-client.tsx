@@ -31,8 +31,9 @@ import { AmbientMusic } from "@/components/ambient-music";
 import { TimesUpAnimation } from "@/components/times-up-animation";
 import { ResultBoard } from "@/components/result-board";
 import { RoomEndedNotice } from "@/components/room-ended-notice";
-import { AiSuggest } from "@/components/ai-suggest";
-import { AiRestaurants } from "@/components/ai-restaurants";
+// AI features temporarily disabled (quota exceeded)
+// import { AiSuggest } from "@/components/ai-suggest";
+// import { AiRestaurants } from "@/components/ai-restaurants";
 import { ConvinceMode } from "@/components/convince-mode";
 import { ParticipantStats } from "@/components/participant-stats";
 import { AVAILABLE_TAGS } from "@/lib/default-meals";
@@ -106,8 +107,9 @@ export function RoomClient({ initialRoom }: { initialRoom: Room }) {
   const [showSummary, setShowSummary] = useState(false);
   const [showTimesUp, setShowTimesUp] = useState(false);
   const [showResultBoard, setShowResultBoard] = useState(false);
-  const [showAiRestaurants, setShowAiRestaurants] = useState(false);
-  const [aiRestaurantMeal, setAiRestaurantMeal] = useState("");
+  // AI features temporarily disabled
+  // const [showAiRestaurants, setShowAiRestaurants] = useState(false);
+  // const [aiRestaurantMeal, setAiRestaurantMeal] = useState("");
   const [pitches, setPitches] = useState<Array<{ participantId: number; nickname: string; mealId: number; mealName: string; pitch: string; timestamp: string }>>([]);
   const { play: playSound, enabled: soundEnabled, toggle: toggleSound } = useSoundEffects();
 
@@ -357,17 +359,14 @@ export function RoomClient({ initialRoom }: { initialRoom: Room }) {
         total={winnerData.total}
         onClose={() => {
           setShowWinner(false);
-          if (winnerData.meal) {
-            setAiRestaurantMeal(`${winnerData.meal.nameVi} (${winnerData.meal.nameEn})`);
-            setShowAiRestaurants(true);
-          }
         }}
       />
+      {/* AI Restaurants temporarily disabled
       <AiRestaurants
         mealName={aiRestaurantMeal}
         show={showAiRestaurants}
         onClose={() => setShowAiRestaurants(false)}
-      />
+      /> */}
       <SpinWheel
         meals={tiedMeals}
         show={showSpinWheel}
@@ -479,6 +478,7 @@ export function RoomClient({ initialRoom }: { initialRoom: Room }) {
         <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3 md:gap-4 p-2 sm:p-3 md:p-4 min-h-0 overflow-y-auto md:overflow-hidden">
           <div className="md:overflow-y-auto space-y-2">
             <MealList meals={filteredMeals} roomCode={room.code} onPreview={setPreviewMeal} />
+            {/* AI Suggest temporarily disabled
             {room.status === "voting" && (
               <AiSuggest
                 roomCode={room.code}
@@ -492,7 +492,7 @@ export function RoomClient({ initialRoom }: { initialRoom: Room }) {
                   });
                 }}
               />
-            )}
+            )} */}
             {/* Vetoed meals */}
             {vetoes.length > 0 && (
               <div className="mt-2 p-2 bg-red-50 dark:bg-red-950/30 rounded-lg">

@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { AiCommentary } from "@/components/ai-commentary";
+// AI features temporarily disabled
+// import { AiCommentary } from "@/components/ai-commentary";
 
 type VoteSummaryItem = {
   meal: { id: number; nameVi: string; nameEn: string; image: string | null };
@@ -93,7 +94,7 @@ export function ResultBoard({
                 </motion.div>
               )}
 
-              {/* AI Commentary */}
+              {/* AI Commentary temporarily disabled
               {winner && winner.count > 0 && (
                 <AiCommentary
                   winnerMeal={`${winner.meal.nameVi} (${winner.meal.nameEn})`}
@@ -101,7 +102,7 @@ export function ResultBoard({
                   totalParticipants={totalParticipants}
                   summary={summary}
                 />
-              )}
+              )} */}
 
               {/* Full leaderboard */}
               <div className="space-y-3">
