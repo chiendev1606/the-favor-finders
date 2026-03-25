@@ -22,7 +22,7 @@ export async function POST(
   });
 
   // Schedule server-side auto-finish when deadline arrives
-  scheduleRoomFinish(code, deadline, () => finishRoom(code));
+  scheduleRoomFinish(code, deadline, async () => { await finishRoom(code); });
 
   broadcast(code, "deadline-set", {
     deadline: deadline.toISOString(),
