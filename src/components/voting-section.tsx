@@ -30,22 +30,23 @@ export function VotingSection({
   roomCode,
   participantId,
   currentVoteMealId,
+  isFinished,
 }: {
   meals: Meal[];
   roomCode: string;
   participantId: number | null;
   currentVoteMealId: number | null;
+  isFinished?: boolean;
 }) {
   const [votingMealId, setVotingMealId] = useState<number | null>(null);
   const [loadingMsg, setLoadingMsg] = useState(LOADING_MESSAGES[0]);
 
   async function handleVote(mealId: number) {
-    if (!participantId || votingMealId !== null) return;
+    if (!participantId || votingMealId !== null || isFinished) return;
 
     setVotingMealId(mealId);
     setLoadingMsg(LOADING_MESSAGES[Math.floor(Math.random() * LOADING_MESSAGES.length)]);
 
-    // Cycle through fun messages while waiting
     const msgInterval = setInterval(() => {
       setLoadingMsg(LOADING_MESSAGES[Math.floor(Math.random() * LOADING_MESSAGES.length)]);
     }, 800);
@@ -65,9 +66,27 @@ export function VotingSection({
   return (
     <Card className="h-full flex flex-col">
       <CardHeader className="pb-3">
-        <CardTitle className="text-base">Pick Your Meal</CardTitle>
+        <CardTitle className="text-base flex items-center gap-2">
+          {isFinished ? "Voting Ended" : "Pick Your Meal"}
+          {isFinished && <Badge variant="secondary" className="text-xs">Closed</Badge>}
+        </CardTitle>
       </CardHeader>
       <CardContent className="flex-1 overflow-y-auto pt-0 relative">
+        {/* Finished overlay */}
+        {isFinished && (
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-background/60 backdrop-blur-[2px] rounded-lg">
+            <motion.div
+              animate={{ y: [0, -5, 0] }}
+              transition={{ duration: 2, repeat: Infinity }}
+              className="text-4xl sm:text-5xl mb-2"
+            >
+              🏁
+            </motion.div>
+            <p className="text-sm font-medium text-muted-foreground">Voting has ended</p>
+            <p className="text-xs text-muted-foreground mt-1">Check the results!</p>
+          </div>
+        )}
+
         {/* Loading overlay */}
         <AnimatePresence>
           {votingMealId !== null && (
@@ -116,16 +135,18 @@ export function VotingSection({
                   <TooltipTrigger className="w-full">
                     <motion.button
                       onClick={() => handleVote(meal.id)}
-                      disabled={votingMealId !== null}
-                      whileTap={votingMealId === null ? { scale: 0.97 } : undefined}
-                      className={`w-full flex items-center gap-2 md:gap-3 text-left px-3 py-2.5 rounded-lg border transition-all cursor-pointer ${
-                        isVoting
-                          ? "border-orange-500 bg-orange-50 ring-2 ring-orange-300 animate-pulse"
-                          : isSelected
-                            ? "border-orange-500 bg-orange-50 ring-2 ring-orange-200"
-                            : votingMealId !== null
-                              ? "border-border opacity-50"
-                              : "border-border hover:border-orange-200 hover:bg-accent"
+                      disabled={votingMealId !== null || isFinished}
+                      whileTap={votingMealId === null && !isFinished ? { scale: 0.97 } : undefined}
+                      className={`w-full flex items-center gap-2 md:gap-3 text-left px-3 py-2.5 rounded-lg border transition-all ${
+                        isFinished
+                          ? "border-border opacity-60 cursor-default"
+                          : isVoting
+                            ? "border-orange-500 bg-orange-50 dark:bg-orange-950/30 ring-2 ring-orange-300 animate-pulse cursor-wait"
+                            : isSelected
+                              ? "border-orange-500 bg-orange-50 dark:bg-orange-950/30 ring-2 ring-orange-200 cursor-pointer"
+                              : votingMealId !== null
+                                ? "border-border opacity-50 cursor-wait"
+                                : "border-border hover:border-orange-200 hover:bg-accent cursor-pointer"
                       }`}
                     >
                       {meal.image && (

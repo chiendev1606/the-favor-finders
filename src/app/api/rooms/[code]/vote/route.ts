@@ -14,6 +14,10 @@ export async function POST(
     return NextResponse.json({ error: "Room not found" }, { status: 404 });
   }
 
+  if (room.status === "finished") {
+    return NextResponse.json({ error: "Voting has ended" }, { status: 403 });
+  }
+
   const meal = await prisma.meal.findFirst({
     where: { id: mealId, roomId: room.id },
   });

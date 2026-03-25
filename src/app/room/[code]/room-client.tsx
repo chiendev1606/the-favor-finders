@@ -27,6 +27,9 @@ import { SurpriseMode } from "@/components/surprise-mode";
 import { VoteNudge } from "@/components/vote-nudge";
 import { InviteCardGenerator } from "@/components/invite-card-generator";
 import { AmbientMusic } from "@/components/ambient-music";
+import { TimesUpAnimation } from "@/components/times-up-animation";
+import { ResultBoard } from "@/components/result-board";
+import { RoomEndedNotice } from "@/components/room-ended-notice";
 import { AVAILABLE_TAGS } from "@/lib/default-meals";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -95,6 +98,8 @@ export function RoomClient({ initialRoom }: { initialRoom: Room }) {
   const [surpriseMode, setSurpriseMode] = useState(false);
   const [voteSummary, setVoteSummary] = useState<VoteSummaryItem[]>([]);
   const [showSummary, setShowSummary] = useState(false);
+  const [showTimesUp, setShowTimesUp] = useState(false);
+  const [showResultBoard, setShowResultBoard] = useState(false);
   const { play: playSound, enabled: soundEnabled, toggle: toggleSound } = useSoundEffects();
 
   useEffect(() => {
@@ -181,23 +186,14 @@ export function RoomClient({ initialRoom }: { initialRoom: Room }) {
     eventSource.addEventListener("room-finished", (e) => {
       const data = JSON.parse(e.data);
       setRoom((prev) => ({ ...prev, status: "finished", winnerId: data.winnerId, deadline: null }));
-      playSound("applause");
 
       // Store vote summary
       if (data.summary) {
         setVoteSummary(data.summary);
       }
 
-      if (data.isTie && data.tiedMeals) {
-        setTiedMeals(data.tiedMeals);
-        setShowSpinWheel(true);
-      } else if (data.winnerMeal) {
-        setWinnerData({ meal: data.winnerMeal, votes: data.winnerVotes, total: data.totalVotes });
-        setShowWinner(true);
-      }
-
-      // Show summary after a brief delay to let celebration play
-      setTimeout(() => setShowSummary(true), 500);
+      // Show time's up animation first
+      setShowTimesUp(true);
     });
 
     eventSource.addEventListener("veto", (e) => {
@@ -249,7 +245,14 @@ export function RoomClient({ initialRoom }: { initialRoom: Room }) {
   const myVote = room.votes.find((v) => v.participantId === participantId);
   const hasUsedVeto = vetoes.some((v) => v.participantId === participantId);
 
+  // If room is already finished and user hasn't joined yet, show ended notice
+  const isLateJoiner = loaded && needsNickname && room.status === "finished";
+
   if (!loaded) return null;
+
+  if (isLateJoiner) {
+    return <RoomEndedNotice />;
+  }
 
   return (
     <>
@@ -270,6 +273,34 @@ export function RoomClient({ initialRoom }: { initialRoom: Room }) {
           }}
         />
       )}
+
+      {/* Time's Up Animation → then Result Board */}
+      <TimesUpAnimation
+        show={showTimesUp}
+        onComplete={() => {
+          setShowTimesUp(false);
+          playSound("applause");
+          // Show result board
+          setShowResultBoard(true);
+        }}
+      />
+      <ResultBoard
+        show={showResultBoard}
+        summary={voteSummary}
+        totalParticipants={room.participants.length}
+        onClose={() => {
+          setShowResultBoard(false);
+          // After closing result board, show winner celebration if applicable
+          const winner = voteSummary[0];
+          if (winner && winner.count > 0) {
+            const winnerMeal = room.meals.find((m) => m.id === winner.meal.id);
+            if (winnerMeal) {
+              setWinnerData({ meal: winnerMeal, votes: winner.count, total: voteSummary.reduce((a, b) => a + b.count, 0) });
+              setShowWinner(true);
+            }
+          }
+        }}
+      />
 
       {/* Modals */}
       <MealPreviewModal meal={previewMeal} onClose={() => setPreviewMeal(null)} />
@@ -425,6 +456,7 @@ export function RoomClient({ initialRoom }: { initialRoom: Room }) {
                 roomCode={room.code}
                 participantId={participantId}
                 currentVoteMealId={myVote?.mealId ?? null}
+                isFinished={room.status === "finished"}
               />
             )}
           </div>
