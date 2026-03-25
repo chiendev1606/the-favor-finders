@@ -2,9 +2,24 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+
+const TIMER_OPTIONS = [
+  { label: "No limit", value: 0 },
+  { label: "1 min", value: 1 },
+  { label: "3 min", value: 3 },
+  { label: "5 min", value: 5 },
+  { label: "10 min", value: 10 },
+  { label: "15 min", value: 15 },
+  { label: "30 min", value: 30 },
+];
 
 export function CreateRoomForm() {
   const [nickname, setNickname] = useState("");
+  const [expiresInMinutes, setExpiresInMinutes] = useState(0);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -16,7 +31,10 @@ export function CreateRoomForm() {
     const res = await fetch("/api/rooms", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nickname: nickname.trim() }),
+      body: JSON.stringify({
+        nickname: nickname.trim(),
+        expiresInMinutes: expiresInMinutes || undefined,
+      }),
     });
     const data = await res.json();
 
@@ -25,22 +43,40 @@ export function CreateRoomForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3">
-      <input
-        type="text"
-        placeholder="Your nickname"
-        value={nickname}
-        onChange={(e) => setNickname(e.target.value)}
-        className="w-full px-4 py-2 border border-orange-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400"
-        required
-      />
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50 font-medium cursor-pointer"
-      >
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <Input
+          type="text"
+          placeholder="Your nickname"
+          value={nickname}
+          onChange={(e) => setNickname(e.target.value)}
+          required
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-sm text-muted-foreground">Session timer</Label>
+        <div className="flex flex-wrap gap-1.5">
+          {TIMER_OPTIONS.map((opt) => (
+            <Badge
+              key={opt.value}
+              variant={expiresInMinutes === opt.value ? "default" : "outline"}
+              className={`cursor-pointer text-xs ${
+                expiresInMinutes === opt.value
+                  ? "bg-orange-500 hover:bg-orange-600"
+                  : "hover:bg-accent"
+              }`}
+              onClick={() => setExpiresInMinutes(opt.value)}
+            >
+              {opt.label}
+            </Badge>
+          ))}
+        </div>
+      </div>
+
+      <Button type="submit" disabled={loading} className="w-full bg-orange-500 hover:bg-orange-600">
         {loading ? "Creating..." : "Create Room"}
-      </button>
+      </Button>
     </form>
   );
 }

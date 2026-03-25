@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export function JoinRoomForm() {
   const [code, setCode] = useState("");
@@ -38,31 +40,26 @@ export function JoinRoomForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
-      <input
+      <Input
         type="text"
         placeholder="Room code"
         value={code}
         onChange={(e) => setCode(e.target.value.toUpperCase())}
-        className="w-full px-4 py-2 border border-orange-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 uppercase tracking-widest text-center"
+        className="uppercase tracking-widest text-center"
         maxLength={6}
         required
       />
-      <input
+      <Input
         type="text"
         placeholder="Your nickname"
         value={nickname}
         onChange={(e) => setNickname(e.target.value)}
-        className="w-full px-4 py-2 border border-orange-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400"
         required
       />
-      {error && <p className="text-red-500 text-sm">{error}</p>}
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 disabled:opacity-50 font-medium cursor-pointer"
-      >
+      {error && <p className="text-destructive text-sm">{error}</p>}
+      <Button type="submit" disabled={loading} variant="secondary" className="w-full bg-teal-500 hover:bg-teal-600 text-white">
         {loading ? "Joining..." : "Join Room"}
-      </button>
+      </Button>
     </form>
   );
 }

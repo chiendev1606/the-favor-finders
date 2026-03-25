@@ -1,8 +1,11 @@
 "use client";
 
 import Image from "next/image";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 
-type Meal = { id: number; nameVi: string; nameEn: string; image: string | null };
+type Meal = { id: number; nameVi: string; nameEn: string; image: string | null; description: string | null; tags: string | null; lat: number | null; lng: number | null };
 type Vote = { participantId: number; mealId: number };
 type Participant = { id: number; nickname: string };
 
@@ -30,61 +33,52 @@ export function ResultsChart({
   const maxCount = sorted[0]?.count || 0;
 
   return (
-    <div className="bg-white rounded-xl p-6 shadow-sm h-full flex flex-col">
-      <h2 className="text-lg font-semibold text-gray-700 mb-4">
-        Results
+    <Card className="h-full flex flex-col">
+      <CardHeader className="flex-row items-center justify-between space-y-0 pb-3">
+        <CardTitle className="text-base">Results</CardTitle>
         {totalVotes > 0 && (
-          <span className="text-sm font-normal text-gray-400 ml-2">
-            ({totalVotes} vote{totalVotes !== 1 ? "s" : ""})
-          </span>
+          <Badge variant="secondary">
+            {totalVotes} vote{totalVotes !== 1 ? "s" : ""}
+          </Badge>
         )}
-      </h2>
+      </CardHeader>
+      <CardContent className="flex-1 overflow-y-auto pt-0">
+        {totalVotes === 0 ? (
+          <p className="text-muted-foreground text-sm">No votes yet. Be the first!</p>
+        ) : (
+          <div className="space-y-4">
+            {sorted.map(({ meal, count, voters }) => {
+              const percentage = totalVotes > 0 ? (count / totalVotes) * 100 : 0;
+              const isWinner = count === maxCount && count > 0;
 
-      {totalVotes === 0 ? (
-        <p className="text-gray-400 text-sm">No votes yet. Be the first!</p>
-      ) : (
-        <div className="space-y-3">
-          {sorted.map(({ meal, count, voters }) => {
-            const percentage = totalVotes > 0 ? (count / totalVotes) * 100 : 0;
-            const isWinner = count === maxCount && count > 0;
-
-            return (
-              <div key={meal.id}>
-                <div className="flex items-center gap-2 mb-1">
-                  {meal.image && (
-                    <Image src={meal.image} alt={meal.nameVi} width={24} height={24} className="w-6 h-6 object-cover rounded" />
-                  )}
-                  <span
-                    className={`text-sm font-medium flex-1 ${
-                      isWinner ? "text-orange-600" : "text-gray-700"
-                    }`}
-                  >
-                    {meal.nameVi}{" "}
-                    <span className="text-gray-400 font-normal">
-                      ({meal.nameEn})
+              return (
+                <div key={meal.id} className="space-y-1.5">
+                  <div className="flex items-center gap-2">
+                    {meal.image && (
+                      <Image src={meal.image} alt={meal.nameVi} width={24} height={24} className="w-6 h-6 object-cover rounded shrink-0" />
+                    )}
+                    <span className={`text-sm font-medium flex-1 truncate ${isWinner ? "text-orange-600" : ""}`}>
+                      {meal.nameVi}{" "}
+                      <span className="text-muted-foreground font-normal">({meal.nameEn})</span>
                     </span>
-                    {isWinner && " — Winner!"}
-                  </span>
-                  <span className="text-sm text-gray-500">{count}</span>
-                </div>
-                <div className="w-full bg-gray-100 rounded-full h-4 overflow-hidden">
-                  <div
-                    className={`h-full rounded-full transition-all duration-500 ${
-                      isWinner ? "bg-orange-500" : "bg-orange-200"
-                    }`}
-                    style={{ width: `${percentage}%` }}
+                    <span className="text-sm font-semibold shrink-0">{count}</span>
+                    {isWinner && (
+                      <Badge className="bg-orange-500 hover:bg-orange-500 shrink-0 text-xs">Winner</Badge>
+                    )}
+                  </div>
+                  <Progress
+                    value={percentage}
+                    className="h-3"
                   />
+                  {voters.length > 0 && (
+                    <p className="text-xs text-muted-foreground">{voters.join(", ")}</p>
+                  )}
                 </div>
-                {voters.length > 0 && (
-                  <p className="text-xs text-gray-400 mt-1">
-                    {voters.join(", ")}
-                  </p>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
+              );
+            })}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }

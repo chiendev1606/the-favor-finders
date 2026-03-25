@@ -10,30 +10,50 @@ datasource db {
 model Room {
   id           Int           @id @default(autoincrement())
   code         String        @unique
+  status       String        @default("voting") // voting | finished
+  deadline     DateTime?
   createdAt    DateTime      @default(now())
   meals        Meal[]
   participants Participant[]
   votes        Vote[]
+  messages     ChatMessage[]
+  reactions    Reaction[]
+  vetoes       Veto[]
+  photos       MealPhoto[]
+  winnerId     Int?
 }
 
 model Meal {
-  id        Int      @id @default(autoincrement())
-  roomId    Int
-  nameVi    String
-  nameEn    String
-  image     String?
-  createdAt DateTime @default(now())
-  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  votes     Vote[]
+  id          Int      @id @default(autoincrement())
+  roomId      Int
+  nameVi      String
+  nameEn      String
+  image       String?
+  description String?
+  tags        String?
+  lat         Float?
+  lng         Float?
+  voiceNote   String?
+  createdAt   DateTime @default(now())
+  room        Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  votes       Vote[]
+  wins        WinHistory[]
+  vetoes      Veto[]
+  photos      MealPhoto[]
 }
 
 model Participant {
-  id       Int      @id @default(autoincrement())
-  roomId   Int
-  nickname String
-  joinedAt DateTime @default(now())
-  room     Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  votes    Vote[]
+  id        Int      @id @default(autoincrement())
+  roomId    Int
+  nickname  String
+  mood      String?
+  joinedAt  DateTime @default(now())
+  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  votes     Vote[]
+  messages  ChatMessage[]
+  reactions Reaction[]
+  vetoes    Veto[]
+  photos    MealPhoto[]
 }
 
 model Vote {
@@ -46,4 +66,61 @@ model Vote {
   meal          Meal        @relation(fields: [mealId], references: [id], onDelete: Cascade)
 
   @@unique([roomId, participantId])
+}
+
+model ChatMessage {
+  id            Int         @id @default(autoincrement())
+  roomId        Int
+  participantId Int
+  text          String
+  createdAt     DateTime    @default(now())
+  room          Room        @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  participant   Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+}
+
+model Reaction {
+  id            Int         @id @default(autoincrement())
+  roomId        Int
+  participantId Int
+  emoji         String
+  createdAt     DateTime    @default(now())
+  room          Room        @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  participant   Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+}
+
+model Veto {
+  id            Int         @id @default(autoincrement())
+  roomId        Int
+  participantId Int
+  mealId        Int
+  reason        String?
+  createdAt     DateTime    @default(now())
+  room          Room        @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  participant   Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  meal          Meal        @relation(fields: [mealId], references: [id], onDelete: Cascade)
+
+  @@unique([roomId, participantId])
+}
+
+model MealPhoto {
+  id            Int         @id @default(autoincrement())
+  roomId        Int
+  participantId Int
+  mealId        Int
+  url           String
+  createdAt     DateTime    @default(now())
+  room          Room        @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  participant   Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  meal          Meal        @relation(fields: [mealId], references: [id], onDelete: Cascade)
+}
+
+model WinHistory {
+  id        Int      @id @default(autoincrement())
+  mealId    Int
+  mealName  String
+  roomCode  String
+  voteCount Int
+  total     Int
+  wonAt     DateTime @default(now())
+  meal      Meal     @relation(fields: [mealId], references: [id], onDelete: Cascade)
 }

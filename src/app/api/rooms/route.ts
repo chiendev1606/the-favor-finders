@@ -8,7 +8,7 @@ function generateCode(): string {
 }
 
 export async function POST(request: Request) {
-  const { nickname } = await request.json();
+  const { nickname, expiresInMinutes } = await request.json();
 
   if (!nickname || typeof nickname !== "string" || !nickname.trim()) {
     return NextResponse.json({ error: "Nickname is required" }, { status: 400 });
@@ -19,9 +19,14 @@ export async function POST(request: Request) {
     code = generateCode();
   }
 
+  const deadline = expiresInMinutes
+    ? new Date(Date.now() + expiresInMinutes * 60 * 1000)
+    : null;
+
   const room = await prisma.room.create({
     data: {
       code,
+      deadline,
       meals: { create: DEFAULT_MEALS },
       participants: { create: { nickname: nickname.trim() } },
     },

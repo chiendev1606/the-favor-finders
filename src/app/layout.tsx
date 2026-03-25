@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import { Roboto } from "next/font/google";
 import "./globals.css";
 
-const geist = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+const roboto = Roboto({
+  variable: "--font-roboto",
+  subsets: ["latin", "vietnamese"],
+  weight: ["300", "400", "500", "700"],
 });
 
 export const metadata: Metadata = {
@@ -18,8 +19,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${geist.variable} h-full antialiased overflow-x-hidden`}>
-      <body className="min-h-full flex flex-col bg-orange-50 font-[family-name:var(--font-geist-sans)] overflow-x-hidden">
+    <html lang="en" className={`${roboto.variable} h-full antialiased overflow-x-hidden`}>
+      <body className="min-h-full flex flex-col bg-orange-50 font-[family-name:var(--font-roboto)] overflow-x-hidden">
         {children}
       </body>
     </html>

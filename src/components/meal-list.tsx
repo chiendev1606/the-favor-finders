@@ -3,42 +3,49 @@
 import { useState } from "react";
 import { MealItem } from "./meal-item";
 import { MealModal } from "./meal-modal";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-type Meal = { id: number; nameVi: string; nameEn: string; image: string | null };
+type Meal = { id: number; nameVi: string; nameEn: string; image: string | null; description: string | null; tags: string | null; lat: number | null; lng: number | null };
 
 export function MealList({
   meals,
   roomCode,
+  onPreview,
 }: {
   meals: Meal[];
   roomCode: string;
+  onPreview?: (meal: Meal) => void;
 }) {
   const [modalMeal, setModalMeal] = useState<Meal | null | undefined>(undefined);
-  // undefined = closed, null = add new, Meal = edit
 
   return (
     <>
-      <div className="bg-white rounded-xl p-6 shadow-sm h-full flex flex-col">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-700">Menu</h2>
-          <button
+      <Card className="h-full flex flex-col">
+        <CardHeader className="flex-row items-center justify-between space-y-0 pb-3">
+          <CardTitle className="text-base">Menu</CardTitle>
+          <Button
+            size="sm"
             onClick={() => setModalMeal(null)}
-            className="px-3 py-1.5 bg-orange-500 text-white text-sm rounded-lg hover:bg-orange-600 cursor-pointer"
+            className="bg-orange-500 hover:bg-orange-600"
           >
             + Add
-          </button>
-        </div>
-        <div className="space-y-2 flex-1 overflow-y-auto">
-          {meals.map((meal) => (
-            <MealItem
-              key={meal.id}
-              meal={meal}
-              roomCode={roomCode}
-              onEdit={() => setModalMeal(meal)}
-            />
-          ))}
-        </div>
-      </div>
+          </Button>
+        </CardHeader>
+        <CardContent className="flex-1 overflow-y-auto pt-0">
+          <div className="space-y-1">
+            {meals.map((meal) => (
+              <MealItem
+                key={meal.id}
+                meal={meal}
+                roomCode={roomCode}
+                onEdit={() => setModalMeal(meal)}
+                onPreview={() => onPreview?.(meal)}
+              />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
       {modalMeal !== undefined && (
         <MealModal
