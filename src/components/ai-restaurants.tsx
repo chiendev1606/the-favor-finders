@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -36,33 +36,31 @@ export function AiRestaurants({
 }) {
   const [loading, setLoading] = useState(false);
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
-  const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  async function fetchRestaurants() {
-    if (loaded) return;
+  useEffect(() => {
+    if (!show || !mealName) return;
+
     setLoading(true);
-    try {
-      const res = await fetch("/api/ai/restaurants", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mealName }),
-      });
-      const data = await res.json();
-      if (data.restaurants) {
-        setRestaurants(data.restaurants);
-        setLoaded(true);
-      }
-    } catch {
-      // silently fail
-    } finally {
-      setLoading(false);
-    }
-  }
+    setError(null);
+    setRestaurants([]);
 
-  // Fetch when dialog opens
-  if (show && !loaded && !loading) {
-    fetchRestaurants();
-  }
+    fetch("/api/ai/restaurants", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mealName }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.restaurants) {
+          setRestaurants(data.restaurants);
+        } else {
+          setError(data.error || "No results found");
+        }
+      })
+      .catch(() => setError("Failed to fetch restaurants"))
+      .finally(() => setLoading(false));
+  }, [show, mealName]);
 
   if (!show) return null;
 
@@ -96,6 +94,12 @@ export function AiRestaurants({
                 />
               ))}
             </div>
+          </div>
+        ) : error ? (
+          <div className="text-center py-6">
+            <p className="text-3xl mb-2">😕</p>
+            <p className="text-sm text-muted-foreground">{error}</p>
+            <Button size="sm" variant="outline" className="mt-3" onClick={onClose}>Close</Button>
           </div>
         ) : (
           <div className="space-y-3">

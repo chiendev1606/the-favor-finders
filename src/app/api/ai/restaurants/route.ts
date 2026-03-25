@@ -28,7 +28,8 @@ Reply in this exact JSON format (no markdown, no code blocks):
     const restaurants = JSON.parse(jsonMatch[0]);
     return NextResponse.json({ restaurants });
   } catch (error) {
-    console.error("Gemini restaurant error:", error);
-    return NextResponse.json({ error: "AI restaurant search failed" }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Unknown error";
+    console.error("AI restaurant error:", message);
+    return NextResponse.json({ error: `AI restaurant search failed: ${message}` }, { status: 500 });
   }
 }
