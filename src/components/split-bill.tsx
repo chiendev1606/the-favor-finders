@@ -68,7 +68,7 @@ export function SplitBill({
           </div>
 
           {totalNum > 0 && (
-            <Card className="bg-orange-50">
+            <Card className="bg-orange-50 dark:bg-orange-950/30">
               <CardContent className="pt-4 text-center space-y-2">
                 <p className="text-sm text-muted-foreground">{participantCount} people</p>
                 <p className="text-2xl sm:text-3xl font-bold text-orange-600">

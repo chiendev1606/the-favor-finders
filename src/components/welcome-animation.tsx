@@ -120,11 +120,10 @@ export function WelcomeAnimation({ onComplete }: { onComplete: () => void }) {
     <AnimatePresence>
       {show && (
         <motion.div
-          className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden"
+          className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden bg-gradient-to-br from-orange-50 via-orange-100 to-orange-200 dark:from-[#1a1008] dark:via-[#2a1a0a] dark:to-[#3a2010]"
           initial={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.6 }}
-          style={{ background: "linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 50%, #FED7AA 100%)" }}
         >
           {/* Falling food emojis */}
           {emojis.map((e, i) => (

@@ -44,7 +44,7 @@ export function ShareClient({ code }: { code: string }) {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-orange-50 px-4 py-8">
+    <main className="min-h-screen flex items-center justify-center bg-background px-4 py-8">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -73,7 +73,7 @@ export function ShareClient({ code }: { code: string }) {
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: 0.3, duration: 0.4 }}
-                className="bg-white p-3 rounded-xl shadow-sm border"
+                className="bg-card p-3 rounded-xl shadow-sm border"
               >
                 <canvas ref={canvasRef} />
               </motion.div>

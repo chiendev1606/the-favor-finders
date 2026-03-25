@@ -60,7 +60,7 @@ export function SpinWheel({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
     >
-      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 text-center">
+      <div className="bg-card rounded-2xl shadow-2xl max-w-md w-full p-6 text-center">
         <h2 className="text-xl font-bold text-orange-600 mb-4">
           {winner ? `${winner.nameVi} wins!` : "Spin the Wheel!"}
         </h2>

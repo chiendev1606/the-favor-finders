@@ -75,12 +75,12 @@ export function VotingSection({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-card/80 backdrop-blur-sm rounded-lg"
+              className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm sm:absolute sm:inset-0 sm:z-10 sm:rounded-lg"
             >
               <motion.div
-                animate={{ rotate: [0, -10, 10, -10, 0], scale: [1, 1.2, 1] }}
+                animate={{ rotate: [0, -10, 10, -10, 0], scale: [1, 1.3, 1] }}
                 transition={{ duration: 0.6, repeat: Infinity }}
-                className="text-5xl mb-3"
+                className="text-6xl sm:text-5xl mb-4 sm:mb-3"
               >
                 {loadingMsg.emoji}
               </motion.div>
@@ -88,15 +88,15 @@ export function VotingSection({
                 key={loadingMsg.text}
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="text-sm font-medium text-orange-600"
+                className="text-base sm:text-sm font-medium text-orange-600 dark:text-orange-400 px-4 text-center"
               >
                 {loadingMsg.text}
               </motion.p>
-              <div className="flex gap-1 mt-3">
+              <div className="flex gap-1.5 sm:gap-1 mt-4 sm:mt-3">
                 {[0, 1, 2].map((i) => (
                   <motion.div
                     key={i}
-                    className="w-2 h-2 rounded-full bg-orange-400"
+                    className="w-2.5 h-2.5 sm:w-2 sm:h-2 rounded-full bg-orange-400"
                     animate={{ scale: [1, 1.5, 1], opacity: [0.4, 1, 0.4] }}
                     transition={{ repeat: Infinity, duration: 0.6, delay: i * 0.15 }}
                   />

@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF8C00"/>
+      <stop offset="100%" style="stop-color:#FF5722"/>
+    </linearGradient>
+  </defs>
+  <!-- Rounded square background -->
+  <rect width="512" height="512" rx="108" fill="url(#bg)"/>
+  <!-- Bowl body -->
+  <ellipse cx="256" cy="310" rx="150" ry="80" fill="#FFF" opacity="0.95"/>
+  <ellipse cx="256" cy="310" rx="130" ry="65" fill="#FFF3E0"/>
+  <!-- Noodles in bowl -->
+  <path d="M180 300 Q210 270 240 300 Q270 330 300 300 Q330 270 340 300" fill="none" stroke="#FF9800" stroke-width="8" stroke-linecap="round"/>
+  <path d="M190 315 Q220 285 250 315 Q280 345 310 315 Q330 295 345 315" fill="none" stroke="#FFB74D" stroke-width="6" stroke-linecap="round"/>
+  <!-- Steam lines -->
+  <path d="M210 250 Q205 225 215 200" fill="none" stroke="#FFF" stroke-width="6" stroke-linecap="round" opacity="0.8"/>
+  <path d="M256 240 Q251 210 261 185" fill="none" stroke="#FFF" stroke-width="7" stroke-linecap="round" opacity="0.9"/>
+  <path d="M300 250 Q295 225 305 200" fill="none" stroke="#FFF" stroke-width="6" stroke-linecap="round" opacity="0.8"/>
+  <!-- Chopsticks -->
+  <line x1="320" y1="180" x2="220" y2="320" stroke="#8D6E63" stroke-width="8" stroke-linecap="round"/>
+  <line x1="340" y1="175" x2="240" y2="315" stroke="#A1887F" stroke-width="8" stroke-linecap="round"/>
+  <!-- Small star accents -->
+  <circle cx="150" cy="170" r="8" fill="#FFF" opacity="0.7"/>
+  <circle cx="380" cy="150" r="6" fill="#FFF" opacity="0.6"/>
+  <circle cx="130" cy="380" r="5" fill="#FFF" opacity="0.5"/>
+  <circle cx="400" cy="370" r="7" fill="#FFF" opacity="0.6"/>
+</svg>

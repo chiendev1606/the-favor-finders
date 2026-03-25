@@ -69,7 +69,7 @@ export function FloatingReactions({
         </AnimatePresence>
       </div>
 
-      <div className="fixed bottom-4 right-4 z-40 flex flex-wrap justify-end gap-0.5 sm:gap-1 bg-white/90 backdrop-blur rounded-full px-1.5 sm:px-2 py-1 shadow-lg border max-w-[200px] sm:max-w-none">
+      <div className="fixed bottom-4 right-4 z-40 flex flex-wrap justify-end gap-0.5 sm:gap-1 bg-card/90 backdrop-blur rounded-full px-1.5 sm:px-2 py-1 shadow-lg border max-w-[200px] sm:max-w-none">
         {REACTION_EMOJIS.map((emoji) => (
           <button
             key={emoji}

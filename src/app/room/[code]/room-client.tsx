@@ -372,9 +372,9 @@ export function RoomClient({ initialRoom }: { initialRoom: Room }) {
 
         {/* Vote Summary Banner */}
         {showSummary && voteSummary.length > 0 && room.status === "finished" && (
-          <div className="px-2 sm:px-3 md:px-4 py-2 bg-orange-50 border-b shrink-0">
+          <div className="px-2 sm:px-3 md:px-4 py-2 bg-orange-50 dark:bg-orange-950/30 border-b shrink-0">
             <div className="flex items-center justify-between mb-1.5">
-              <p className="text-sm font-semibold text-orange-700">Voting Results</p>
+              <p className="text-sm font-semibold text-orange-700 dark:text-orange-400">Voting Results</p>
               <Button size="sm" variant="ghost" className="h-5 px-1.5 text-xs text-muted-foreground" onClick={() => setShowSummary(false)}>✕</Button>
             </div>
             <div className="space-y-1">
@@ -398,7 +398,7 @@ export function RoomClient({ initialRoom }: { initialRoom: Room }) {
             <MealList meals={filteredMeals} roomCode={room.code} onPreview={setPreviewMeal} />
             {/* Vetoed meals */}
             {vetoes.length > 0 && (
-              <div className="mt-2 p-2 bg-red-50 rounded-lg">
+              <div className="mt-2 p-2 bg-red-50 dark:bg-red-950/30 rounded-lg">
                 <p className="text-xs font-medium text-red-600 mb-1">🚫 Vetoed:</p>
                 {room.meals.filter((m) => vetoedMealIds.has(m.id)).map((m) => (
                   <p key={m.id} className="text-xs text-red-400 line-through">{m.nameVi}</p>

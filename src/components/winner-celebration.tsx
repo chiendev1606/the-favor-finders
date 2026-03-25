@@ -43,7 +43,7 @@ export function WinnerCelebration({
           exit={{ opacity: 0 }}
         >
           <motion.div
-            className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-4 sm:p-6 md:p-8 text-center mx-2"
+            className="bg-card rounded-2xl shadow-2xl max-w-sm w-full p-4 sm:p-6 md:p-8 text-center mx-2"
             initial={{ scale: 0, rotate: -10 }}
             animate={{ scale: 1, rotate: 0 }}
             exit={{ scale: 0 }}
@@ -74,8 +74,8 @@ export function WinnerCelebration({
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.3 }}
             >
-              <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">{meal.nameVi}</h3>
-              <p className="text-gray-500 mb-3">{meal.nameEn}</p>
+              <h3 className="text-2xl sm:text-3xl font-bold text-foreground mb-1">{meal.nameVi}</h3>
+              <p className="text-muted-foreground mb-3">{meal.nameEn}</p>
               <p className="text-orange-500 font-semibold text-lg">
                 {votes} out of {total} votes
               </p>
