@@ -9,11 +9,17 @@ const roboto = Roboto({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "http://localhost:3000"),
   title: "The Flavor Finders",
   description: "Group meal voting made easy",
   icons: {
     icon: "/icon.svg",
     apple: "/icon.svg",
+  },
+  openGraph: {
+    siteName: "The Flavor Finders",
+    type: "website",
+    images: [{ url: "/api/og", width: 1200, height: 630 }],
   },
 };
 
