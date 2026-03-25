@@ -532,7 +532,6 @@ export function RoomClient({ initialRoom }: { initialRoom: Room }) {
                 participantId={participantId}
                 meals={filteredMeals}
                 pitches={pitches}
-                isFinished={room.status === "finished"}
               />
             )}
           </div>
