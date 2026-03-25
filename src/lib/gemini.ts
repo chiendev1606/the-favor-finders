@@ -1,24 +1,23 @@
-import OpenAI from "openai";
+import { GoogleGenAI } from "@google/genai";
 
-let _client: OpenAI | null = null;
+let _ai: GoogleGenAI | null = null;
 
-function getClient(): OpenAI {
-  if (!_client) {
-    const apiKey = process.env.OPENAI_API_KEY;
+function getAI(): GoogleGenAI {
+  if (!_ai) {
+    const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      throw new Error("OPENAI_API_KEY is not set");
+      throw new Error("GEMINI_API_KEY is not set");
     }
-    _client = new OpenAI({ apiKey });
+    _ai = new GoogleGenAI({ apiKey });
   }
-  return _client;
+  return _ai;
 }
 
 export async function askGemini(prompt: string): Promise<string> {
-  const client = getClient();
-  const response = await client.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [{ role: "user", content: prompt }],
-    temperature: 0.8,
+  const ai = getAI();
+  const response = await ai.models.generateContent({
+    model: "gemini-2.0-flash",
+    contents: prompt,
   });
-  return response.choices[0]?.message?.content ?? "";
+  return response.text ?? "";
 }
