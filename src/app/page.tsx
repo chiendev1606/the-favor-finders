@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { WelcomeAnimation } from "@/components/welcome-animation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { DailyRoom } from "@/components/daily-room";
 
 export default function Home() {
   const [showAnimation, setShowAnimation] = useState(false);
@@ -70,6 +71,8 @@ export default function Home() {
                 <JoinRoomForm />
               </CardContent>
             </Card>
+
+            <DailyRoom />
           </div>
         </main>
       )}

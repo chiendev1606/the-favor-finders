@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { MealList } from "@/components/meal-list";
 import { VotingSection } from "@/components/voting-section";
 import { ResultsChart } from "@/components/results-chart";
@@ -32,6 +33,8 @@ import { ResultBoard } from "@/components/result-board";
 import { RoomEndedNotice } from "@/components/room-ended-notice";
 import { AiSuggest } from "@/components/ai-suggest";
 import { AiRestaurants } from "@/components/ai-restaurants";
+import { ConvinceMode } from "@/components/convince-mode";
+import { ParticipantStats } from "@/components/participant-stats";
 import { AVAILABLE_TAGS } from "@/lib/default-meals";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -72,6 +75,7 @@ type VoteSummaryItem = {
 };
 
 export function RoomClient({ initialRoom }: { initialRoom: Room }) {
+  const router = useRouter();
   const [room, setRoom] = useState(initialRoom);
   const [participantId, setParticipantId] = useState<number | null>(null);
   const [nickname, setNickname] = useState("");
@@ -104,6 +108,7 @@ export function RoomClient({ initialRoom }: { initialRoom: Room }) {
   const [showResultBoard, setShowResultBoard] = useState(false);
   const [showAiRestaurants, setShowAiRestaurants] = useState(false);
   const [aiRestaurantMeal, setAiRestaurantMeal] = useState("");
+  const [pitches, setPitches] = useState<Array<{ participantId: number; nickname: string; mealId: number; mealName: string; pitch: string; timestamp: string }>>([]);
   const { play: playSound, enabled: soundEnabled, toggle: toggleSound } = useSoundEffects();
 
   useEffect(() => {
@@ -222,6 +227,12 @@ export function RoomClient({ initialRoom }: { initialRoom: Room }) {
       playSound("sadtrombone");
     });
 
+    eventSource.addEventListener("pitch", (e) => {
+      const pitch = JSON.parse(e.data);
+      setPitches((prev) => [...prev, pitch]);
+      playSound("whoosh");
+    });
+
     eventSource.addEventListener("photo-added", (e) => {
       const photo = JSON.parse(e.data);
       setPhotos((prev) => [photo, ...prev]);
@@ -237,6 +248,20 @@ export function RoomClient({ initialRoom }: { initialRoom: Room }) {
   const handleFinishVoting = useCallback(async () => {
     await fetch(`/api/rooms/${room.code}/finish`, { method: "POST" });
   }, [room.code]);
+
+  const handleRematch = useCallback(async () => {
+    if (!nickname) return;
+    const res = await fetch("/api/rooms/rematch", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ fromRoomCode: room.code, nickname }),
+    });
+    const data = await res.json();
+    if (data.code) {
+      localStorage.setItem(`participant-${data.code}`, String(data.participantId));
+      router.push(`/room/${data.code}`);
+    }
+  }, [room.code, nickname, router]);
 
   const handleTagToggle = (tag: string) => {
     setSelectedTags((prev) => prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]);
@@ -394,6 +419,7 @@ export function RoomClient({ initialRoom }: { initialRoom: Room }) {
             </Link>
             {room.status === "finished" && (
               <>
+                <Button size="sm" className="text-xs h-7 px-1.5 sm:px-3 bg-violet-500 hover:bg-violet-600" onClick={handleRematch}>🔄<span className="hidden sm:inline ml-1">Rematch</span></Button>
                 <Button size="sm" variant="outline" className="text-xs h-7 px-1.5 sm:px-3" onClick={() => setShowBill(true)}>💰<span className="hidden sm:inline ml-1">Split</span></Button>
                 <Button size="sm" variant="outline" className="text-xs h-7 px-1.5 sm:px-3" onClick={() => setShowPhotos(true)}>📸<span className="hidden sm:inline ml-1">Photos</span></Button>
               </>
@@ -500,11 +526,21 @@ export function RoomClient({ initialRoom }: { initialRoom: Room }) {
                 isFinished={room.status === "finished"}
               />
             )}
+            {room.status === "voting" && (
+              <ConvinceMode
+                roomCode={room.code}
+                participantId={participantId}
+                meals={filteredMeals}
+                pitches={pitches}
+                isFinished={room.status === "finished"}
+              />
+            )}
           </div>
 
-          <div className="md:overflow-y-auto">
+          <div className="md:overflow-y-auto space-y-2">
             <ResultsChart meals={filteredMeals} votes={room.votes} participants={room.participants} />
-            <div className="mt-2">
+            <ParticipantStats roomCode={room.code} currentParticipantId={participantId} />
+            <div>
               <InviteCardGenerator roomCode={room.code} />
             </div>
           </div>
