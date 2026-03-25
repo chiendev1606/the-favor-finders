@@ -20,7 +20,11 @@ export function CreateRoomForm() {
   const [nickname, setNickname] = useState("");
   const [timerMode, setTimerMode] = useState<"quick" | "exact">("quick");
   const [quickMinutes, setQuickMinutes] = useState(0);
-  const [exactTime, setExactTime] = useState("");
+  const [exactDate, setExactDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [exactTime, setExactTime] = useState(() => {
+    const d = new Date(Date.now() + 30 * 60000);
+    return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  });
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -33,9 +37,9 @@ export function CreateRoomForm() {
     if (timerMode === "quick" && quickMinutes > 0) {
       // Convert minutes to UTC deadline
       deadlineUtc = new Date(Date.now() + quickMinutes * 60 * 1000).toISOString();
-    } else if (timerMode === "exact" && exactTime) {
-      // exactTime is in local time from datetime-local input — convert to UTC
-      const localDate = new Date(exactTime);
+    } else if (timerMode === "exact" && exactDate && exactTime) {
+      // Combine date + time (local) and convert to UTC
+      const localDate = new Date(`${exactDate}T${exactTime}`);
       if (localDate.getTime() > Date.now()) {
         deadlineUtc = localDate.toISOString();
       }
@@ -55,9 +59,6 @@ export function CreateRoomForm() {
     localStorage.setItem(`participant-${data.code}`, String(data.participantId));
     router.push(`/room/${data.code}`);
   }
-
-  // Get minimum datetime for the picker (now + 1 minute)
-  const minDatetime = new Date(Date.now() + 60000).toISOString().slice(0, 16);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -111,13 +112,27 @@ export function CreateRoomForm() {
           </div>
         ) : (
           <div className="space-y-1.5">
-            <Input
-              type="datetime-local"
-              value={exactTime}
-              min={minDatetime}
-              onChange={(e) => setExactTime(e.target.value)}
-              className="text-sm"
-            />
+            <div className="flex gap-2">
+              <div className="flex-1 space-y-1">
+                <Label className="text-xs text-muted-foreground">Date</Label>
+                <Input
+                  type="date"
+                  value={exactDate}
+                  min={new Date().toISOString().slice(0, 10)}
+                  onChange={(e) => setExactDate(e.target.value)}
+                  className="text-sm"
+                />
+              </div>
+              <div className="flex-1 space-y-1">
+                <Label className="text-xs text-muted-foreground">Time</Label>
+                <Input
+                  type="time"
+                  value={exactTime}
+                  onChange={(e) => setExactTime(e.target.value)}
+                  className="text-sm"
+                />
+              </div>
+            </div>
             <p className="text-[11px] text-muted-foreground">
               Room will auto-close at this time
             </p>
