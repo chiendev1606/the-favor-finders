@@ -115,6 +115,16 @@ export function RoomClient({ initialRoom }: { initialRoom: Room }) {
     } else {
       setNeedsNickname(true);
     }
+
+    // Restore vote summary from sessionStorage (survives refresh)
+    const savedSummary = sessionStorage.getItem(`room-summary-${room.code}`);
+    if (savedSummary) {
+      try {
+        setVoteSummary(JSON.parse(savedSummary));
+        setShowSummary(true);
+      } catch {}
+    }
+
     setLoaded(true);
 
     // Load chat + vetoes + photos
@@ -190,10 +200,16 @@ export function RoomClient({ initialRoom }: { initialRoom: Room }) {
       // Store vote summary
       if (data.summary) {
         setVoteSummary(data.summary);
+        // Save summary to sessionStorage so it survives refresh
+        sessionStorage.setItem(`room-summary-${room.code}`, JSON.stringify(data.summary));
       }
 
-      // Show time's up animation first
-      setShowTimesUp(true);
+      // Only show time's up animation if user hasn't seen it this session
+      const seenKey = `room-finished-seen-${room.code}`;
+      if (!sessionStorage.getItem(seenKey)) {
+        sessionStorage.setItem(seenKey, "true");
+        setShowTimesUp(true);
+      }
     });
 
     eventSource.addEventListener("veto", (e) => {

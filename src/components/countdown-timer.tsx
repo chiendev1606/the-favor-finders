@@ -42,8 +42,8 @@ export function CountdownTimer({
       if (remaining <= 0) {
         setTimeLeft(0);
         clearInterval(interval);
-        // Server will auto-finish and broadcast room-finished via SSE
-        // No need for client to call finish API
+        // Trigger server-side check — fetching the room will finish it if expired
+        fetch(`/api/rooms/${roomCode}`).catch(() => {});
       } else {
         setTimeLeft(remaining);
       }
