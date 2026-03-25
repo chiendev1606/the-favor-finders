@@ -16,7 +16,7 @@ function getAI(): GoogleGenAI {
 export async function askGemini(prompt: string): Promise<string> {
   const ai = getAI();
   const response = await ai.models.generateContent({
-    model: "gemini-2.0-flash",
+    model: "gemini-2.0-flash-lite",
     contents: prompt,
   });
   return response.text ?? "";
