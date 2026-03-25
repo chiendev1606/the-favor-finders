@@ -3,8 +3,9 @@
 import { useCallback, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 
-// Simple sound synthesis using Web Audio API
-function playSound(type: "pop" | "drumroll" | "applause" | "whoosh") {
+type SoundType = "pop" | "drumroll" | "applause" | "whoosh" | "ding" | "sadtrombone" | "tick";
+
+function playSound(type: SoundType) {
   try {
     const ctx = new AudioContext();
     const osc = ctx.createOscillator();
@@ -21,6 +22,59 @@ function playSound(type: "pop" | "drumroll" | "applause" | "whoosh") {
         osc.start(ctx.currentTime);
         osc.stop(ctx.currentTime + 0.15);
         break;
+
+      case "ding": {
+        // Bright ding sound for voting
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(1200, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(800, ctx.currentTime + 0.3);
+        gain.gain.setValueAtTime(0.25, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.4);
+        // Second harmonic
+        const osc2 = ctx.createOscillator();
+        const gain2 = ctx.createGain();
+        osc2.connect(gain2);
+        gain2.connect(ctx.destination);
+        osc2.type = "sine";
+        osc2.frequency.setValueAtTime(1800, ctx.currentTime);
+        osc2.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 0.2);
+        gain2.gain.setValueAtTime(0.15, ctx.currentTime);
+        gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+        osc2.start(ctx.currentTime);
+        osc2.stop(ctx.currentTime + 0.3);
+        break;
+      }
+
+      case "sadtrombone": {
+        // Descending "wah wah wah wahhh"
+        osc.type = "sawtooth";
+        const notes = [350, 330, 310, 230];
+        const dur = 0.35;
+        notes.forEach((freq, i) => {
+          osc.frequency.setValueAtTime(freq, ctx.currentTime + i * dur);
+        });
+        gain.gain.setValueAtTime(0.15, ctx.currentTime);
+        gain.gain.setValueAtTime(0.15, ctx.currentTime + dur * 2);
+        gain.gain.linearRampToValueAtTime(0.2, ctx.currentTime + dur * 3);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + dur * 4 + 0.3);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + dur * 4 + 0.3);
+        break;
+      }
+
+      case "tick": {
+        // Quick tick for countdown warnings
+        osc.type = "square";
+        osc.frequency.setValueAtTime(1000, ctx.currentTime);
+        gain.gain.setValueAtTime(0.15, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.05);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.05);
+        break;
+      }
+
       case "drumroll":
         osc.type = "triangle";
         osc.frequency.setValueAtTime(150, ctx.currentTime);
@@ -30,8 +84,8 @@ function playSound(type: "pop" | "drumroll" | "applause" | "whoosh") {
         osc.start(ctx.currentTime);
         osc.stop(ctx.currentTime + 2);
         break;
-      case "applause":
-        // Simulate with noise bursts
+
+      case "applause": {
         const bufferSize = ctx.sampleRate * 1.5;
         const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
         const data = buffer.getChannelData(0);
@@ -46,6 +100,8 @@ function playSound(type: "pop" | "drumroll" | "applause" | "whoosh") {
         applauseGain.connect(ctx.destination);
         source.start();
         return;
+      }
+
       case "whoosh":
         osc.type = "sawtooth";
         osc.frequency.setValueAtTime(200, ctx.currentTime);
@@ -70,7 +126,7 @@ export function useSoundEffects() {
   }, []);
 
   const play = useCallback(
-    (type: "pop" | "drumroll" | "applause" | "whoosh") => {
+    (type: SoundType) => {
       if (enabled) playSound(type);
     },
     [enabled]

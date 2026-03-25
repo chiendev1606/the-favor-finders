@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { motion, AnimatePresence } from "framer-motion";
+import confetti from "canvas-confetti";
 import {
   Tooltip,
   TooltipContent,
@@ -56,6 +57,13 @@ export function VotingSection({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ participantId, mealId }),
+      });
+      // Confetti burst on successful vote!
+      confetti({
+        particleCount: 60,
+        spread: 80,
+        origin: { y: 0.7 },
+        colors: ["#FF6B35", "#F7C948", "#FB7185", "#34D399", "#60A5FA"],
       });
     } finally {
       clearInterval(msgInterval);

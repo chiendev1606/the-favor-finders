@@ -139,7 +139,7 @@ export function RoomClient({ initialRoom }: { initialRoom: Room }) {
     eventSource.addEventListener("vote-update", (e) => {
       const votes = JSON.parse(e.data);
       setRoom((prev) => ({ ...prev, votes }));
-      playSound("pop");
+      playSound("ding");
     });
 
     eventSource.addEventListener("meal-added", (e) => {
@@ -215,6 +215,7 @@ export function RoomClient({ initialRoom }: { initialRoom: Room }) {
     eventSource.addEventListener("veto", (e) => {
       const veto = JSON.parse(e.data);
       setVetoes((prev) => [...prev, veto]);
+      playSound("sadtrombone");
     });
 
     eventSource.addEventListener("photo-added", (e) => {
